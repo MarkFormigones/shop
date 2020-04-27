@@ -4,7 +4,7 @@ import '../models/product.dart';
 import '../screens/edit_product_screen.dart';
 
 class UserProductItem extends StatelessWidget {
-  final int id;
+  final String id;
   final String title;
   final String imageUrl;
 
@@ -12,6 +12,8 @@ class UserProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaffold = Scaffold.of(context);
+    
     return ListTile(
       title: Text(title),
       leading: CircleAvatar(
@@ -26,19 +28,28 @@ class UserProductItem extends StatelessWidget {
               onPressed: () {
                 // Navigator.of(context).pushNamed(EditProductScreen.routeName, arguments: EditProductScreen(id: id,));
                 Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => EditProductScreen(
-                          id: id,
-                        )),
-              );
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => EditProductScreen(
+                            id: id,
+                          )),
+                );
               },
               color: Theme.of(context).primaryColor,
             ),
             IconButton(
               icon: Icon(Icons.delete),
-              onPressed: () {
-                Provider.of<Product>(context, listen: false).deleteProduct(id);
+              onPressed: () async {
+                try {
+                  await Provider.of<Product>(context, listen: false)
+                      .deleteProduct(id);
+                } catch (error) {
+                  scaffold.showSnackBar(
+                    SnackBar(
+                      content: Text('Deleting failed!', textAlign: TextAlign.center,),
+                    ),
+                  );
+                }
               },
               color: Theme.of(context).errorColor,
             ),

@@ -6,7 +6,7 @@ import '../models/product.dart';
 
 class EditProductScreen extends StatefulWidget {
   static const routeName = '/edit-product';
-  final int id;
+  final String id;
 
   EditProductScreen({this.id});
 
@@ -25,13 +25,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final GlobalKey<FormBuilderState> _fbKey = GlobalKey<FormBuilderState>();
 
   var _editedProduct = ProductItem(
-    id: 0,
+    id: null,
     title: '',
     price: 0,
     description: '',
     imageUrl: '',
   );
 
+  bool _isLoading = false;
   // var _initValues = {
   //   'title': '',
   //   'description': '',
@@ -48,8 +49,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
     updateUI(widget.id);
   }
 
-  void updateUI(int id) {
-    if (id > 0) {
+  void updateUI(String id) {
+    if (id != null) {
       _editedProduct =
           Provider.of<Product>(context, listen: false).findbyId(id);
     }
@@ -99,10 +100,17 @@ class _EditProductScreenState extends State<EditProductScreen> {
   //   }
   // }
 
-  void _saveForm() {
+  void setLoading(bool isload) {
+    setState(() {
+      _isLoading = isload;
+    });
+  }
+
+  Future<void> _saveForm() async {
     if (_fbKey.currentState.saveAndValidate()) {
       print(_fbKey.currentState.value);
 
+      setLoading(true);
       var prodlist = _fbKey.currentState.value.values.toList();
 
       ProductItem _prod = ProductItem(
@@ -113,27 +121,33 @@ class _EditProductScreenState extends State<EditProductScreen> {
         imageUrl: prodlist[3].toString(),
       );
 
-      if (_editedProduct.id > 0) {
-        Provider.of<Product>(context, listen: false)
-            .updateProduct(_editedProduct.id, _prod);
-      } else {
-        Provider.of<Product>(context, listen: false).addProduct(_prod);
+      try {
+        if (_editedProduct.id != null) {
+          await Provider.of<Product>(context, listen: false)
+              .updateProduct(_editedProduct.id, _prod);
+        } else {
+          await Provider.of<Product>(context, listen: false).addProduct(_prod);
+        }
+      } catch (error) {
+        await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('An error occurred!'),
+            content: Text('Something went wrong.'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Okay'),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+              )
+            ],
+          ),
+        );
       }
+      setLoading(false);
       Navigator.of(context).pop();
     }
-
-    // final isValid = _fbKey.currentState.validate();
-    // if (!isValid) {
-    //   return;
-    // }
-    // _fbKey.currentState.save();
-    // if (_editedProduct.id > 0) {
-    //   Provider.of<Product>(context, listen: false)
-    //       .updateProduct(_editedProduct.id, _editedProduct);
-    // } else {
-    //   Provider.of<Product>(context, listen: false).addProduct(_editedProduct);
-    // }
-    // Navigator.of(context).pop();
   }
 
   @override
@@ -148,62 +162,66 @@ class _EditProductScreenState extends State<EditProductScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: FormBuilder(
-          key: _fbKey,
-          autovalidate: true,
-          child: ListView(
-            children: <Widget>[
-              FormBuilderTextField(
-                attribute: 'title',
-                initialValue: _editedProduct.title,
-                decoration: InputDecoration(labelText: "Title"),
-                validators: [
-                  FormBuilderValidators.required(),
-                  FormBuilderValidators.maxLength(50),
-                ],
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: FormBuilder(
+                key: _fbKey,
+                autovalidate: true,
+                child: ListView(
+                  children: <Widget>[
+                    FormBuilderTextField(
+                      attribute: 'title',
+                      initialValue: _editedProduct.title,
+                      decoration: InputDecoration(labelText: "Title"),
+                      validators: [
+                        FormBuilderValidators.required(),
+                        FormBuilderValidators.maxLength(50),
+                      ],
+                    ),
+                    FormBuilderTextField(
+                      attribute: 'description',
+                      initialValue: _editedProduct.description,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: 3,
+                      decoration: InputDecoration(labelText: "Description"),
+                      validators: [
+                        FormBuilderValidators.required(),
+                        FormBuilderValidators.minLength(10),
+                        FormBuilderValidators.maxLength(200),
+                      ],
+                    ),
+                    FormBuilderTextField(
+                      attribute: 'price',
+                      initialValue: _editedProduct.price > 0
+                          ? _editedProduct.price.toString()
+                          : "",
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: "Price"),
+                      validators: [
+                        FormBuilderValidators.required(),
+                        FormBuilderValidators.numeric(),
+                        FormBuilderValidators.min(1),
+                        FormBuilderValidators.max(10000000),
+                      ],
+                    ),
+                    FormBuilderTextField(
+                      attribute: 'imageUrl',
+                      initialValue: _editedProduct.imageUrl,
+                      keyboardType: TextInputType.url,
+                      decoration: InputDecoration(labelText: "Image Url"),
+                      validators: [
+                        FormBuilderValidators.required(),
+                        FormBuilderValidators.url(),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              FormBuilderTextField(
-                attribute: 'description',
-                initialValue: _editedProduct.description,
-                keyboardType: TextInputType.multiline,
-                maxLines: 3,
-                decoration: InputDecoration(labelText: "Description"),
-                validators: [
-                  FormBuilderValidators.required(),
-                  FormBuilderValidators.minLength(10),
-                  FormBuilderValidators.maxLength(200),
-                ],
-              ),
-              FormBuilderTextField(
-                attribute: 'price',
-                initialValue: _editedProduct.price > 0
-                    ? _editedProduct.price.toString()
-                    : "",
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: "Price"),
-                validators: [
-                  FormBuilderValidators.required(),
-                  FormBuilderValidators.numeric(),
-                  FormBuilderValidators.min(1),
-                  FormBuilderValidators.max(10000000),
-                ],
-              ),
-              FormBuilderTextField(
-                attribute: 'imageUrl',
-                initialValue: _editedProduct.imageUrl,
-                keyboardType: TextInputType.url,
-                decoration: InputDecoration(labelText: "Image Url"),
-                validators: [
-                  FormBuilderValidators.required(),
-                  FormBuilderValidators.url(),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

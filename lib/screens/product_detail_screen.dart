@@ -7,7 +7,7 @@ class ProductDetailScreen extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    final productId = ModalRoute.of(context).settings.arguments as int; // is the id!
+    final productId = ModalRoute.of(context).settings.arguments as String; // is the id!
     final loadedProduct = Provider.of<Product>(
       context,
       listen: false,) //listen used to not rebuild if new product added.
