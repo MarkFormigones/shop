@@ -12,8 +12,8 @@ class UserProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold.of(context);
     
+
     return ListTile(
       title: Text(title),
       leading: CircleAvatar(
@@ -39,17 +39,43 @@ class UserProductItem extends StatelessWidget {
             ),
             IconButton(
               icon: Icon(Icons.delete),
-              onPressed: () async {
-                try {
-                  await Provider.of<Product>(context, listen: false)
-                      .deleteProduct(id);
-                } catch (error) {
-                  scaffold.showSnackBar(
-                    SnackBar(
-                      content: Text('Deleting failed!', textAlign: TextAlign.center,),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text('Delete'),
+                    content: Text(
+                      'Are you sure you want to delete?',
                     ),
-                  );
-                }
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('No'),
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                        },
+                      ),
+                      FlatButton(
+                        child: Text('Yes'),
+                        onPressed: () async {
+                          Navigator.of(ctx).pop();
+                          try {
+                            await Provider.of<Product>(context, listen: false)
+                                .deleteProduct(id);
+                          } catch (error) {
+                            Scaffold.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Deleting failed!',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                );
               },
               color: Theme.of(context).errorColor,
             ),

@@ -79,11 +79,31 @@ class Product with ChangeNotifier {
     return _items.where((prodItem) => prodItem.isFavorite).toList();
   }
 
-  void toggleFavoriteStatus(ProductItem product) {
-    //ProductModel product = items.singleWhere((prod) => prod.id == id);
-    product.isFavorite = !product.isFavorite;
-    notifyListeners();
+  Future<void> toggleFavoriteStatus(ProductItem product) async {
+    final oldStatus = product.isFavorite;
+    try {
+      product.isFavorite = !product.isFavorite;
+      notifyListeners();
+
+      NetworkHelper networkHelper = NetworkHelper();
+      final response = await networkHelper.toggleFavoriteStatus(product);
+
+      if (response.statusCode >= 400) {
+        product.isFavorite = oldStatus;
+        notifyListeners();
+      }
+    } catch (error) {
+      product.isFavorite = oldStatus;
+      notifyListeners();
+      throw (error);
+    }
   }
+
+  //  void toggleFavoriteStatus(ProductItem product) {
+  //   //ProductModel product = items.singleWhere((prod) => prod.id == id);
+  //   product.isFavorite = !product.isFavorite;
+  //   notifyListeners();
+  // }
 
   Future<void> updateProduct(String id, ProductItem newProduct) async {
     try {
@@ -94,7 +114,6 @@ class Product with ChangeNotifier {
         _items[prodIndex] = newProduct;
         notifyListeners();
       }
-
     } catch (error) {
       throw (error);
     }
@@ -105,6 +124,10 @@ class Product with ChangeNotifier {
       NetworkHelper networkHelper = NetworkHelper();
       var response = await networkHelper.getProducts();
       final extractedData = response as Map<String, dynamic>;
+
+      if (extractedData == null) {
+        return;
+      }
       final List<ProductItem> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {
         loadedProducts.add(ProductItem(
@@ -144,15 +167,14 @@ class Product with ChangeNotifier {
     }
   }
 
-   Future<void> deleteProduct(String id) async {
-        
+  Future<void> deleteProduct(String id) async {
     final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
     var existingProduct = _items[existingProductIndex];
     _items.removeAt(existingProductIndex);
     notifyListeners();
 
     NetworkHelper networkHelper = NetworkHelper();
-    final response = await networkHelper.deleteProduct(id); 
+    final response = await networkHelper.deleteProduct(id);
     if (response.statusCode >= 400) {
       _items.insert(existingProductIndex, existingProduct);
       notifyListeners();

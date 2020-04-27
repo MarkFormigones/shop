@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import '../models/cart.dart';
 import 'dart:convert';
 import '../models/product.dart';
 
@@ -41,5 +42,40 @@ class NetworkHelper {
   Future<http.Response> deleteProduct(String id) async {
     String url = base + 'products/$id.json';
     return await http.delete(url);
+  }
+
+  Future<http.Response> toggleFavoriteStatus(ProductItem product) async {
+    String url = base + 'products/${product.id}.json';
+    return await http.patch(url,
+        body: json.encode({
+          'isFavorite': product.isFavorite,
+        }));
+  }
+
+  Future<Map<String, dynamic>> getOrders() async {
+    String url = base + 'orders.json';
+    var response = await http.get(url);
+    return json.decode(response.body);
+  }
+
+  Future<dynamic> addOrder(
+      List<CartItem> cartProducts, double total, DateTime timestamp) async {
+    String url = base + 'orders.json';
+    final response = await http.post(
+      url,
+      body: json.encode({
+        'amount': total,
+        'dateTime': timestamp.toIso8601String(),
+        'products': cartProducts
+            .map((cp) => {
+                  'id': cp.id,
+                  'title': cp.title,
+                  'quantity': cp.quantity,
+                  'price': cp.price,
+                })
+            .toList(),
+      }),
+    );
+    return jsonDecode(response.body)['name'];
   }
 }
