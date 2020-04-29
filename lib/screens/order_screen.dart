@@ -8,6 +8,10 @@ import '../widgets/app_drawer.dart';
 class OrderScreen extends StatelessWidget {
   static const routeName = '/orders';
 
+Future<void> _refreshOrders(BuildContext context) async {
+    await Provider.of<Order>(context, listen: false).getOrders();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,7 +20,7 @@ class OrderScreen extends StatelessWidget {
       ),
       drawer: AppDrawer(),
       body: FutureBuilder(
-        future: Provider.of<Order>(context, listen: false).getOrders(),
+        future: _refreshOrders(context),
         builder: (ctx, dataSnapshot) {
           if (dataSnapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());

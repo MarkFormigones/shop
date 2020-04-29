@@ -83,21 +83,27 @@ class _OrderButtonState extends State<OrderButton> {
       onPressed: (widget.cart.totalAmount <= 0 || _isLoading)
           ? null
           : () async {
+              setState(() {
+                _isLoading = true;
+              });
               try {
                 await Provider.of<Order>(context, listen: false).addOrder(
                   widget.cart.items.values.toList(),
                   widget.cart.totalAmount,
                 );
+                setState(() {
+                  _isLoading = false;
+                });
                 widget.cart.clear();
               } catch (error) {
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
                     content: Text(
                       'Order failed!',
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  );
+                );
               }
             },
       textColor: Theme.of(context).primaryColor,

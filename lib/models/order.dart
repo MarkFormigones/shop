@@ -74,7 +74,7 @@ int get getCount {
     try {
       NetworkHelper networkHelper =  NetworkHelper(authToken: authToken);
       var response =
-          await networkHelper.addOrder(cartProducts, authUser, total, timestamp, );
+          await networkHelper.addOrder(cartProducts, authUser, total, timestamp);
 
       orders.insert(
         0,
