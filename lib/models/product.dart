@@ -20,7 +20,13 @@ class ProductItem {
 }
 
 class Product with ChangeNotifier {
-  List<ProductItem> _items = [];
+  final String authToken;
+ final String authUser;
+
+  List<ProductItem> items = [];
+
+  Product({this.authToken, this.authUser, this.items});
+
 //  List<ProductItem> _items = [ProductItem(
 //       id: 1,
 //       title: 'Red Shirt',
@@ -63,11 +69,14 @@ class Product with ChangeNotifier {
 //     ),
 //     ];
 
-  List<ProductItem> get items {
-    return [..._items];
+  List<ProductItem> get productList {
+    return [...items];
   }
 
   int get getCount {
+    if(items == null){
+      return 0;
+    }
     return items.length;
   }
 
@@ -76,7 +85,7 @@ class Product with ChangeNotifier {
   }
 
   List<ProductItem> get favoriteItems {
-    return _items.where((prodItem) => prodItem.isFavorite).toList();
+    return items.where((prodItem) => prodItem.isFavorite).toList();
   }
 
   Future<void> toggleFavoriteStatus(ProductItem product) async {
@@ -85,8 +94,8 @@ class Product with ChangeNotifier {
       product.isFavorite = !product.isFavorite;
       notifyListeners();
 
-      NetworkHelper networkHelper = NetworkHelper();
-      final response = await networkHelper.toggleFavoriteStatus(product);
+      NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
+      final response = await networkHelper.toggleFavoriteStatus(product, authUser);
 
       if (response.statusCode >= 400) {
         product.isFavorite = oldStatus;
@@ -107,11 +116,11 @@ class Product with ChangeNotifier {
 
   Future<void> updateProduct(String id, ProductItem newProduct) async {
     try {
-      final prodIndex = _items.indexWhere((prod) => prod.id == id);
+      final prodIndex = items.indexWhere((prod) => prod.id == id);
       if (prodIndex >= 0) {
-        NetworkHelper networkHelper = NetworkHelper();
+        NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
         await networkHelper.updateProduct(id, newProduct);
-        _items[prodIndex] = newProduct;
+        items[prodIndex] = newProduct;
         notifyListeners();
       }
     } catch (error) {
@@ -119,12 +128,21 @@ class Product with ChangeNotifier {
     }
   }
 
-  Future<void> getProducts() async {
+  Future<void> getProducts([bool filterByUser = false]) async {
     try {
-      NetworkHelper networkHelper = NetworkHelper();
-      var response = await networkHelper.getProducts();
+      NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
+
+      var response;
+      if(filterByUser){       
+         response = await networkHelper.getProductsByUser(authUser);
+      }
+      else{
+        response = await networkHelper.getProducts();
+      }
+ 
       final extractedData = response as Map<String, dynamic>;
 
+      var favoriteData = await networkHelper.getUserFavorites(authUser);
       if (extractedData == null) {
         return;
       }
@@ -135,11 +153,11 @@ class Product with ChangeNotifier {
           title: prodData['title'],
           description: prodData['description'],
           price: prodData['price'],
-          isFavorite: prodData['isFavorite'],
+          isFavorite: favoriteData == null ? false : favoriteData[prodId] ?? false,
           imageUrl: prodData['imageUrl'],
         ));
       });
-      _items = loadedProducts;
+      items = loadedProducts;
       notifyListeners();
     } catch (error) {
       throw (error);
@@ -148,8 +166,8 @@ class Product with ChangeNotifier {
 
   Future<void> addProduct(ProductItem product) async {
     try {
-      NetworkHelper networkHelper = NetworkHelper();
-      var response = await networkHelper.addProduct(product);
+      NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
+      var response = await networkHelper.addProduct(product, authUser);
 
       final newProduct = ProductItem(
         title: product.title,
@@ -157,8 +175,9 @@ class Product with ChangeNotifier {
         price: product.price,
         imageUrl: product.imageUrl,
         id: response.toString(),
+        
       );
-      _items.add(newProduct);
+      items.add(newProduct);
       print(response);
       notifyListeners();
     } catch (error) {
@@ -168,15 +187,15 @@ class Product with ChangeNotifier {
   }
 
   Future<void> deleteProduct(String id) async {
-    final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
-    var existingProduct = _items[existingProductIndex];
-    _items.removeAt(existingProductIndex);
+    final existingProductIndex = items.indexWhere((prod) => prod.id == id);
+    var existingProduct = items[existingProductIndex];
+    items.removeAt(existingProductIndex);
     notifyListeners();
 
-    NetworkHelper networkHelper = NetworkHelper();
+    NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
     final response = await networkHelper.deleteProduct(id);
     if (response.statusCode >= 400) {
-      _items.insert(existingProductIndex, existingProduct);
+      items.insert(existingProductIndex, existingProduct);
       notifyListeners();
       throw HttpException('Could not delete product.');
     }

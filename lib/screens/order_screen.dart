@@ -27,7 +27,7 @@ class OrderScreen extends StatelessWidget {
               );
             } else {
               return Consumer<Order>(
-                builder: (ctx, orderData, child) => orderData.orders.length == 0
+                builder: (ctx, orderData, child) => orderData.getCount == 0
                     ? Center(child: Text('Empty order'))
                     : ListView.builder(
                         itemCount: orderData.orders.length,

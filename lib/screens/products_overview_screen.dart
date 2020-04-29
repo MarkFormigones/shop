@@ -105,9 +105,9 @@ class ProductsGrid extends StatelessWidget {
     final products =
         isFavorites ? productsData.favoriteItems : productsData.items;
 
-    return GridView.builder(
+    return products == null ? Center(child: Text('Empty products')) : GridView.builder(
       padding: const EdgeInsets.all(10.0),
-      itemCount: products.length, //products.length,
+      itemCount: products.length, 
       itemBuilder: (ctx, i) => widgetProductItem.ProductItem(
         //products[i].id,
         products[i].id,

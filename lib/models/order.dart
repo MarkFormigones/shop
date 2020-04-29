@@ -18,17 +18,31 @@ class OrderItem {
 }
 
 class Order with ChangeNotifier {
-  List<OrderItem> _orders = [];
+  final String authToken;
+  final String authUser;
 
-  List<OrderItem> get orders {
-    return [..._orders];
+
+  Order({this.authToken, this.authUser, this.orders});
+
+  List<OrderItem> orders = [];
+
+  List<OrderItem> get orderList {
+    return [...orders];
   }
 
+int get getCount {
+    if(orders == null){
+      return 0;
+    }
+    return orders.length;
+  }
+
+
   Future<void> getOrders() async {
-    NetworkHelper networkHelper = NetworkHelper();
-    final extractedData = await networkHelper.getOrders();
+    NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
+    final extractedData = await networkHelper.getOrders(authUser);
     final List<OrderItem> loadedOrders = [];
-    
+
     if (extractedData == null) {
       return;
     }
@@ -51,27 +65,27 @@ class Order with ChangeNotifier {
         ),
       );
     });
-    _orders = loadedOrders.reversed.toList();
+    orders = loadedOrders.reversed.toList();
     notifyListeners();
   }
 
   Future<void> addOrder(List<CartItem> cartProducts, double total) async {
     final timestamp = DateTime.now();
     try {
-      NetworkHelper networkHelper = NetworkHelper();
-      var response = await networkHelper.addOrder(cartProducts, total, timestamp);
+      NetworkHelper networkHelper =  NetworkHelper(authToken: authToken);
+      var response =
+          await networkHelper.addOrder(cartProducts, authUser, total, timestamp, );
 
-      _orders.insert(
-      0,
-      OrderItem(
-        id: response.toString(),
-        amount: total,
-        dateTime: timestamp,
-        products: cartProducts,
-      ),
-    );
-    notifyListeners();
-
+      orders.insert(
+        0,
+        OrderItem(
+          id: response.toString(),
+          amount: total,
+          dateTime: timestamp,
+          products: cartProducts,
+        ),
+      );
+      notifyListeners();
     } catch (error) {
       throw (error);
     }
