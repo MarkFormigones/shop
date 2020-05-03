@@ -2,8 +2,12 @@ import 'package:http/http.dart' as http;
 import '../models/cart.dart';
 import 'dart:convert';
 import '../models/product.dart';
+import 'package:firebase_storage/firebase_storage.dart'; // For File Upload To Firestore
+import 'package:path/path.dart' as Path;
+import 'dart:io';
 
 class NetworkHelper {
+
   final String base = 'https://flutter-update.firebaseio.com/';
 
   final String authToken;
@@ -17,7 +21,8 @@ class NetworkHelper {
   }
 
   Future<dynamic> getProductsByUser(String userId) async {
-    String url = base + 'products.json?auth=$authToken&orderBy="creatorId"&equalTo="$userId"';
+    String url = base +
+        'products.json?auth=$authToken&orderBy="creatorId"&equalTo="$userId"';
     var response = await http.get(url);
     return json.decode(response.body);
   }
@@ -62,7 +67,7 @@ class NetworkHelper {
     var url = base + 'userFavorites/$userId/${product.id}.json?auth=$authToken';
     return await http.put(url, body: json.encode(product.isFavorite));
   }
- 
+
   Future<dynamic> getUserFavorites(String userId) async {
     String url = base + 'userFavorites/$userId.json?auth=$authToken';
     final favoriteResponse = await http.get(url);
@@ -75,8 +80,8 @@ class NetworkHelper {
     return json.decode(response.body);
   }
 
-  Future<dynamic> addOrder(
-      List<CartItem> cartProducts, String userId, double total, DateTime timestamp) async {
+  Future<dynamic> addOrder(List<CartItem> cartProducts, String userId,
+      double total, DateTime timestamp) async {
     String url = base + 'orders/$userId.json?auth=$authToken';
     final response = await http.post(
       url,
@@ -111,5 +116,16 @@ class NetworkHelper {
       ),
     );
     return json.decode(response.body);
+  }
+
+  Future<String> uploadFile(File _file) async {
+      StorageReference storageReference = FirebaseStorage.instance
+          .ref()
+          .child('store/${Path.basename(_file.path)}');
+      StorageUploadTask uploadTask = storageReference.putFile(_file);
+      await uploadTask.onComplete;
+      var response = await storageReference.getDownloadURL();
+       print('File Uploaded');
+      return response;
   }
 }

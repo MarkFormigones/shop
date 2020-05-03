@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:provider/provider.dart';
 
 import '../models/product.dart';
+import '../widgets/image_input.dart';
+
 
 class EditProductScreen extends StatefulWidget {
   static const routeName = '/edit-product';
@@ -15,13 +19,6 @@ class EditProductScreen extends StatefulWidget {
 }
 
 class _EditProductScreenState extends State<EditProductScreen> {
-  // final _priceFocusNode = FocusNode();
-  // final _descriptionFocusNode = FocusNode();
-  // final _imageUrlController = TextEditingController();
-  // final _imageUrlFocusNode = FocusNode();
-
-  //final _form = GlobalKey<FormState>();
-
   final GlobalKey<FormBuilderState> _fbKey = GlobalKey<FormBuilderState>();
 
   var _editedProduct = ProductItem(
@@ -33,17 +30,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
   );
 
   bool _isLoading = false;
-  // var _initValues = {
-  //   'title': '',
-  //   'description': '',
-  //   'price': '',
-  //   'imageUrl': '',
-  // };
-  //var _isInit = true;
+
+  File _pickedImage;
+
+  void _selectImage(File pickedImage) {
+    _pickedImage = pickedImage;
+  }
 
   @override
   void initState() {
-    //_imageUrlFocusNode.addListener(_updateImageUrl);
     super.initState();
 
     updateUI(widget.id);
@@ -56,49 +51,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
     }
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   if (_isInit) {
-  //     final productId = ModalRoute.of(context).settings.arguments as String;
-  //     if (productId != null) {
-  //       _editedProduct =
-  //           Provider.of<Product>(context, listen: false).findById(productId);
-  //       _initValues = {
-  //         'title': _editedProduct.title,
-  //         'description': _editedProduct.description,
-  //         'price': _editedProduct.price.toString(),
-  //         // 'imageUrl': _editedProduct.imageUrl,
-  //         'imageUrl': '',
-  //       };
-  //       _imageUrlController.text = _editedProduct.imageUrl;
-  //     }
-  //   }
-  //   _isInit = false;
-  //   super.didChangeDependencies();
-  // }
-
   @override
   void dispose() {
-    // _imageUrlFocusNode.removeListener(_updateImageUrl);
-    // _priceFocusNode.dispose();
-    // _descriptionFocusNode.dispose();
-    // _imageUrlController.dispose();
-    // _imageUrlFocusNode.dispose();
     super.dispose();
   }
-
-  // void _updateImageUrl() {
-  //   if (!_imageUrlFocusNode.hasFocus) {
-  //     if ((!_imageUrlController.text.startsWith('http') &&
-  //             !_imageUrlController.text.startsWith('https')) ||
-  //         (!_imageUrlController.text.endsWith('.png') &&
-  //             !_imageUrlController.text.endsWith('.jpg') &&
-  //             !_imageUrlController.text.endsWith('.jpeg'))) {
-  //       return;
-  //     }
-  //     setState(() {});
-  //   }
-  // }
 
   void setLoading(bool isload) {
     setState(() {
@@ -109,19 +65,24 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Future<void> _saveForm() async {
     if (_fbKey.currentState.saveAndValidate()) {
       print(_fbKey.currentState.value);
-
+      final _fields = _fbKey.currentState.value;
+      
       setLoading(true);
-      var prodlist = _fbKey.currentState.value.values.toList();
-
-      ProductItem _prod = ProductItem(
-        id: _editedProduct.id,
-        title: prodlist[0].toString(),
-        price: double.parse(prodlist[2].toString()),
-        description: prodlist[1].toString(),
-        imageUrl: prodlist[3].toString(),
-      );
-
       try {
+      
+        //upload image
+        final fileUrl = await Provider.of<Product>(context, listen: false)
+            .uploadFile(_pickedImage);
+
+        print(fileUrl);
+        ProductItem _prod = ProductItem(
+          id: _editedProduct.id == null ? "0" : _editedProduct.id,
+          title: _fields['title'],
+          price: double.parse(_fields['price']),
+          description:  _fields['description'],
+          imageUrl: fileUrl.toString(),
+        );
+
         if (_editedProduct.id != null) {
           await Provider.of<Product>(context, listen: false)
               .updateProduct(_editedProduct.id, _prod);
@@ -207,16 +168,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         FormBuilderValidators.min(1),
                         FormBuilderValidators.max(10000000),
                       ],
-                    ),
-                    FormBuilderTextField(
-                      attribute: 'imageUrl',
-                      initialValue: _editedProduct.imageUrl,
-                      keyboardType: TextInputType.url,
-                      decoration: InputDecoration(labelText: "Image Url"),
-                      validators: [
-                        FormBuilderValidators.required(),
-                        FormBuilderValidators.url(),
-                      ],
+                    ),                 
+                    Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Column(
+                        children: <Widget>[
+                         
+                          ImageInput(_selectImage),
+                        ],
+                      ),
                     ),
                   ],
                 ),

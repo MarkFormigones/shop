@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../networking/network_helper.dart';
 import '../networking/http_exception.dart';
@@ -21,7 +23,7 @@ class ProductItem {
 
 class Product with ChangeNotifier {
   final String authToken;
- final String authUser;
+  final String authUser;
 
   List<ProductItem> items = [];
 
@@ -74,7 +76,7 @@ class Product with ChangeNotifier {
   }
 
   int get getCount {
-    if(items == null){
+    if (items == null) {
       return 0;
     }
     return items.length;
@@ -95,7 +97,8 @@ class Product with ChangeNotifier {
       notifyListeners();
 
       NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
-      final response = await networkHelper.toggleFavoriteStatus(product, authUser);
+      final response =
+          await networkHelper.toggleFavoriteStatus(product, authUser);
 
       if (response.statusCode >= 400) {
         product.isFavorite = oldStatus;
@@ -133,13 +136,12 @@ class Product with ChangeNotifier {
       NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
 
       var response;
-      if(filterByUser){       
-         response = await networkHelper.getProductsByUser(authUser);
-      }
-      else{
+      if (filterByUser) {
+        response = await networkHelper.getProductsByUser(authUser);
+      } else {
         response = await networkHelper.getProducts();
       }
- 
+
       final extractedData = response as Map<String, dynamic>;
 
       var favoriteData = await networkHelper.getUserFavorites(authUser);
@@ -153,7 +155,8 @@ class Product with ChangeNotifier {
           title: prodData['title'],
           description: prodData['description'],
           price: prodData['price'],
-          isFavorite: favoriteData == null ? false : favoriteData[prodId] ?? false,
+          isFavorite:
+              favoriteData == null ? false : favoriteData[prodId] ?? false,
           imageUrl: prodData['imageUrl'],
         ));
       });
@@ -175,7 +178,6 @@ class Product with ChangeNotifier {
         price: product.price,
         imageUrl: product.imageUrl,
         id: response.toString(),
-        
       );
       items.add(newProduct);
       print(response);
@@ -201,4 +203,19 @@ class Product with ChangeNotifier {
     }
     existingProduct = null;
   }
+
+  Future<String> uploadFile(File _file) async {
+    try {
+    NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
+    final response = await networkHelper.uploadFile(_file);
+    return response;
+
+    } catch (error) { 
+     throw (error);
+    }
+
+
+  }
+
+
 }
