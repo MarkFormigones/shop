@@ -7,7 +7,7 @@ import 'package:path/path.dart' as Path;
 import 'dart:io';
 
 class NetworkHelper {
-
+  
   final String base = 'https://flutter-update.firebaseio.com/';
 
   final String authToken;
@@ -15,7 +15,8 @@ class NetworkHelper {
   NetworkHelper({this.authToken});
 
   Future<dynamic> getProducts() async {
-    String url = base + 'products.json?auth=$authToken';
+    //String url = base + 'products.json?auth=$authToken';
+    String url = base + 'products.json';
     var response = await http.get(url);
     return json.decode(response.body);
   }
@@ -23,6 +24,13 @@ class NetworkHelper {
   Future<dynamic> getProductsByUser(String userId) async {
     String url = base +
         'products.json?auth=$authToken&orderBy="creatorId"&equalTo="$userId"';
+    var response = await http.get(url);
+    return json.decode(response.body);
+  }
+
+  Future<dynamic> getProductsByKeywords(String keywords) async {
+    String url = base + 
+    'products.json?orderBy="title"&equalTo="$keywords"';
     var response = await http.get(url);
     return json.decode(response.body);
   }

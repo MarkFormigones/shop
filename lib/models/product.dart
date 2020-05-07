@@ -160,7 +160,36 @@ class Product with ChangeNotifier {
           imageUrl: prodData['imageUrl'],
         ));
       });
-      items = loadedProducts;
+      items = loadedProducts.reversed.toList();
+      notifyListeners();
+    } catch (error) {
+      throw (error);
+    }
+  }
+
+Future<void> getProductsBykeywords(String keywords) async {
+    try {
+      NetworkHelper networkHelper = NetworkHelper(authToken: authToken);
+      var response= await networkHelper.getProductsByKeywords(keywords);
+      final extractedData = response as Map<String, dynamic>;
+
+      var favoriteData = await networkHelper.getUserFavorites(authUser);
+      if (extractedData == null) {
+        return;
+      }
+      final List<ProductItem> loadedProducts = [];
+      extractedData.forEach((prodId, prodData) {
+        loadedProducts.add(ProductItem(
+          id: prodId,
+          title: prodData['title'],
+          description: prodData['description'],
+          price: prodData['price'],
+          isFavorite:
+              favoriteData == null ? false : favoriteData[prodId] ?? false,
+          imageUrl: prodData['imageUrl'],
+        ));
+      });
+      items = loadedProducts.reversed.toList();
       notifyListeners();
     } catch (error) {
       throw (error);

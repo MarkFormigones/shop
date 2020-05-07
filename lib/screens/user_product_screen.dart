@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../models/product.dart';
 import '../widgets/user_product_item.dart';
-import '../widgets/app_drawer.dart';
 import '../screens/edit_product_screen.dart';
 
 class UserProductScreen extends StatelessWidget {
@@ -37,7 +36,7 @@ class UserProductScreen extends StatelessWidget {
           ),
         ],
       ),
-      drawer: AppDrawer(),
+      //drawer: AppDrawer(),
       body: FutureBuilder(
         future: _refreshProducts(context),
         builder: (ctx, dataSnapshot) {

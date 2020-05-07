@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/user_product_screen.dart';
+import '../screens/profile_screen.dart';
 import 'package:provider/provider.dart';
 import '../models/auth.dart';
 import '../screens/order_screen.dart';
@@ -24,23 +24,22 @@ class AppDrawer extends StatelessWidget {
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.payment),
-            title: Text('Orders'),
+            leading: Icon(Icons.edit),
+            title: Text('Account'),
             onTap: () {
               Navigator.of(context)
-                  .pushReplacementNamed(OrderScreen.routeName);
+                  .pushReplacementNamed(ProfileScreen.routeName);
             },
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.edit),
-            title: Text('Manage Products'),
+            leading: Icon(Icons.payment),
+            title: Text('Orders'),
             onTap: () {
-              Navigator.of(context)
-                  .pushReplacementNamed(UserProductScreen.routeName);
+              Navigator.of(context).pushReplacementNamed(OrderScreen.routeName);
             },
           ),
-                    Divider(),
+          Divider(),
           ListTile(
             leading: Icon(Icons.exit_to_app),
             title: Text('Logout'),

@@ -50,9 +50,17 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #  - images/a_dot_burr.jpeg
-  #  - images/a_dot_ham.jpeg
+  assets:
+   - assets/avatars/
+   - assets/icon/
+   - assets/img/
+   - assets/imgBrand/
+   - assets/imgCamera/
+   - assets/imgCategoryMan/
+   - assets/imgIllustration/
+   - assets/imgItem/
+   - assets/imgPromo/
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -74,6 +82,32 @@ flutter:
         - asset: assets/fonts/Lato-Regular.ttf
         - asset: assets/fonts/Lato-Bold.ttf
           weight: 700
+    - family: Sans
+      fonts:
+        - asset: assets/fonts/OpenSans-Bold.ttf
+          weight: 800
+        - asset: assets/fonts/OpenSans-Semibold.ttf
+          weight: 600
+        - asset: assets/fonts/OpenSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/OpenSans-Light.ttf
+          weight: 200
+    - family : Popins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight : 600
+    - family : Berlin
+      fonts:
+        - asset: assets/fonts/BRLNSDB.TTF
+          weight: 700
+    - family : Gotik
+      fonts:
+        - asset: assets/fonts/GOTHIC.TTF
+          weight: 400
+        - asset: assets/fonts/GOTHICB.TTF
+          weight : 600          
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
