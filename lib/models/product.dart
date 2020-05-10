@@ -233,6 +233,12 @@ Future<void> getProductsBykeywords(String keywords) async {
     existingProduct = null;
   }
 
+//this is used for search to clear cache product.
+  Future<void> deleteCacheProducts() async {
+    items = [];
+    notifyListeners();   
+  }
+
   Future<String> uploadFile(File _file) async {
     try {
     NetworkHelper networkHelper = NetworkHelper(authToken: authToken);

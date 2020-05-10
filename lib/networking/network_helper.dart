@@ -9,6 +9,7 @@ import 'dart:io';
 class NetworkHelper {
   
   final String base = 'https://flutter-update.firebaseio.com/';
+  
 
   final String authToken;
 
@@ -30,8 +31,9 @@ class NetworkHelper {
 
   Future<dynamic> getProductsByKeywords(String keywords) async {
     String url = base + 
-    'products.json?orderBy="title"&equalTo="$keywords"';
+    'products.json?orderBy="title"&startAt="$keywords"&endAt="$keywords\uf8ff"';
     var response = await http.get(url);
+    
     return json.decode(response.body);
   }
 

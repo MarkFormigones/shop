@@ -4,8 +4,8 @@ import 'package:shop_app/widgets/Products_grid.dart';
 import '../library/carousel_pro/src/carousel_pro.dart';
 import '../models/product.dart';
 import '../widgets/app_drawer.dart';
+import 'cart_screen.dart';
 import 'search_screen.dart';
-
 
 enum FilterOptions {
   Favorites,
@@ -20,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   var _isInit = true;
   var _showOnlyFavorites = false;
-   var _isLoading = false;
+  var _isLoading = false;
 
   @override
   void didChangeDependencies() {
@@ -33,10 +33,27 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading = false;
         });
       });
+      _isInit = false;
+      super.didChangeDependencies();
     }
-    _isInit = false;
-    super.didChangeDependencies();
   }
+
+  void _refreshProducts() {
+    //await Provider.of<Product>(context, listen: false).getProducts(true);
+    setState(() {
+      _isLoading = true;
+    });
+    Provider.of<Product>(context, listen: false).getProducts().then((_) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
+  Future<void> _clearProductsCache(BuildContext context) async {
+    await Provider.of<Product>(context, listen: false).deleteCacheProducts();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,31 +85,39 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          // IconButton(
-          //   icon: Icon(
-          //     Icons.shopping_cart,
-          //   ),
-          //   onPressed: () {
-          //     Navigator.of(context).pushNamed(CartScreen.routeName);
-          //   },
-          // ),
+          IconButton(
+            icon: Icon(
+              Icons.shopping_cart,
+            ),
+            onPressed: () {
+              Navigator.of(context).pushNamed(CartScreen.routeName);
+            },
+          ),
           IconButton(
             icon: Icon(
               Icons.search,
             ),
-            onPressed: () {
-              Navigator.of(context).push(PageRouteBuilder(
-                  pageBuilder: (_, __, ___) => SearchScreen(),
-                  /// transtation duration in animation
-                  transitionDuration: Duration(milliseconds: 750),
-                  /// animation route to search layout
-                  transitionsBuilder:
-                      (_, Animation<double> animation, __, Widget child) {
-                    return Opacity(
-                      opacity: animation.value,
-                      child: child,
-                    );
-                  }));
+            onPressed: () async {
+
+              await _clearProductsCache(context);  
+              Navigator.of(context)
+                  .push(PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => SearchScreen(),
+
+                      /// transtation duration in animation
+                      transitionDuration: Duration(milliseconds: 750),
+
+                      /// animation route to search layout
+                      transitionsBuilder:
+                          (_, Animation<double> animation, __, Widget child) {
+                        return Opacity(
+                          opacity: animation.value,
+                          child: child,
+                        );
+                      }))
+                  .then((_) {
+                _refreshProducts();
+              });
             },
           ),
         ],

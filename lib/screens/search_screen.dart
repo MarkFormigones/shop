@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/models/product.dart';
+import '../models/product.dart';
+import '../widgets/Products_grid.dart';
 //import 'package:shop_app/widgets/Products_grid.dart';
-import 'package:shop_app/widgets/products_list.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -11,14 +11,24 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   /// Sentence Text header "Hello i am Treva.........."
+  var _isLoading = false;
   final _keywordController = TextEditingController();
 
   Future<void> _refreshProducts(BuildContext context) async {
     if (_keywordController.text == "") {
       return;
     }
+
+    setState(() {
+      _isLoading = true;
+    });
+
     await Provider.of<Product>(context, listen: false)
         .getProductsBykeywords(_keywordController.text);
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   var _textHello = Padding(
@@ -33,6 +43,13 @@ class _SearchScreenState extends State<SearchScreen> {
           fontFamily: "Gotik"),
     ),
   );
+
+  @override
+  void initState() {
+    super.initState();
+
+    
+  }
 
   @override
   void dispose() {
@@ -71,10 +88,18 @@ class _SearchScreenState extends State<SearchScreen> {
                 /// Caliing a variable
                 _textHello,
                 _search(context),
-                //ProductsGrid(isFavorites: false),
+                Padding(padding: EdgeInsets.only(bottom: 30.0, top: 2.0)),
+                _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : Consumer<Product>(
+                        builder: (ctx, productData, child) =>
+                            productData.getCount == 0
+                                ? Center(child: Text('no results found.'))
+                                : ProductsGrid(isFavorites: false),
+                      ),
+
                 //_sugestedText,
-                ProductsList(isFavorites: true),
-                Padding(padding: EdgeInsets.only(bottom: 30.0, top: 2.0))
+                //ProductsList(isFavorites: true),
               ],
             ),
           ),
