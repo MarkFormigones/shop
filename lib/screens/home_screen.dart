@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/widgets/Products_grid.dart';
+import 'package:shop_app/localization/translate_helper.dart';
+import '../main.dart';
+import '../models/language.dart';
+import '../widgets/Products_grid.dart';
 import '../library/carousel_pro/src/carousel_pro.dart';
 import '../models/product.dart';
 import '../widgets/app_drawer.dart';
 import 'cart_screen.dart';
 import 'search_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 enum FilterOptions {
   Favorites,
@@ -21,6 +25,23 @@ class _HomeScreenState extends State<HomeScreen> {
   var _isInit = true;
   var _showOnlyFavorites = false;
   var _isLoading = false;
+
+  @override
+  void initState() {
+    final fbm = FirebaseMessaging();
+    fbm.requestNotificationPermissions();
+    fbm.configure(onMessage: (msg) {
+      print(msg);
+      return;
+    }, onLaunch: (msg) {
+      print(msg);
+      return;
+    }, onResume: (msg) {
+      print(msg);
+      return;
+    });
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
@@ -50,16 +71,21 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+   Future<void> _changeLanguage(LanguageItem language, BuildContext context) async {
+    await Provider.of<Language>(context, listen: false).switchLocale(language);
+    var locale = await Provider.of<Language>(context, listen: false).getLocale();
+    MyApp.setLocale(context, locale);
+  }
+
   Future<void> _clearProductsCache(BuildContext context) async {
     await Provider.of<Product>(context, listen: false).deleteCacheProducts();
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('MyShop'),
+        title: Text(getTranslated(context, 'home_page')),
         actions: <Widget>[
           PopupMenuButton(
             onSelected: (FilterOptions selectedValue) {
@@ -98,8 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icons.search,
             ),
             onPressed: () async {
-
-              await _clearProductsCache(context);  
+              await _clearProductsCache(context);
               Navigator.of(context)
                   .push(PageRouteBuilder(
                       pageBuilder: (_, __, ___) => SearchScreen(),
@@ -120,6 +145,24 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
           ),
+          PopupMenuButton(
+            onSelected: (LanguageItem selectedVal) {
+              setState(() {
+                _changeLanguage(selectedVal, context);
+              });
+            },
+            icon: Icon(
+              Icons.more_vert,
+            ),
+            itemBuilder: (_) => LanguageItem.languageList()
+                .map(
+                  (LanguageItem lang) => PopupMenuItem<LanguageItem>(
+                    value: lang,
+                    child: Text('${lang.flag}  ${lang.name}'),
+                  ),
+                )
+                .toList(),
+          ),
         ],
       ),
       drawer: AppDrawer(),
@@ -132,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: <Widget>[
                       imageSlider,
                       Padding(
-                        padding: const EdgeInsets.only(left: 20.0, top: 20.0),
+                        padding: const EdgeInsets.only(left: 20.0, top: 20.0, right: 20.0),
                         child: Text(
                           "Recomended",
                           style: TextStyle(

@@ -8,9 +8,9 @@ import 'dart:io';
 
 class NetworkHelper {
   
-  final String base = 'https://flutter-update.firebaseio.com/';
+  //final String base = 'https://flutter-update.firebaseio.com/';
+  final base = 'https://flutter-store-a469a.firebaseio.com/';
   
-
   final String authToken;
 
   NetworkHelper({this.authToken});
